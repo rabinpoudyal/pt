@@ -1,0 +1,12 @@
+<table>
+{% for item in data %}
+<tbody>
+  <tr>
+    <td class="c2">{{item['message']}}</td>
+    <td class="c3">{{item['notification_type']}}</td>
+    <td class="c4"><span>{{item['action']}}</span></td>
+    <td class="c5"><span>{{item['story']['name']}}</span></td>
+  </tr>
+</tbody>
+{% endfor %}
+</table>
