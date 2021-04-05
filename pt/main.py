@@ -8,26 +8,17 @@ from .core.exc import PivotalTrackerError
 from .controllers.base import Base
 from .controllers.pivotal import Pivotal
 
-# configuration defaults
-CONFIG = init_defaults('pt')
-CONFIG['pt']['foo'] = 'bar'
-CONFIG['pt']['api_token'] = '-TOKEN-'
-CONFIG['pt']['db_file'] = '~/.pt/pt.json'
+from pymongo import MongoClient
+
+CONFIG = fs.join(os.path.dirname(__file__), '..',
+                'config', 'pt.yml')
 
 def extend_tinydb(app):
-    app.log.info('extending the pt application with tinydb')
-    db_file = app.config.get('pt', 'db_file')
-
-    # ensure we expand full path
-    db_file = fs.abspath(db_file)
-    app.log.info('tiny database file is: %s' % db_file)
-
-    # ensure our parent dir exists
-    db_dir = os.path.dirname(db_file)
-    if not os.path.exists(db_dir):
-        os.makedirs(db_dir)
-    
-    app.extend('db', TinyDB(db_file))
+    app.log.info('Connecting to Mongoid')
+    # connect to the db
+    client = MongoClient("localhost", 27017)
+    db = client.pt    
+    app.extend('db', db)
 
 class PivotalTracker(App):
     """Pivotal Tracker primary application."""
@@ -35,8 +26,7 @@ class PivotalTracker(App):
     class Meta:
         label = 'pt'
 
-        # configuration defaults
-        config_defaults = CONFIG
+        config_files = [CONFIG]
 
         # call sys.exit() on close
         exit_on_close = True
@@ -64,12 +54,12 @@ class PivotalTracker(App):
         # register handlers
         handlers = [
             Base,
-            Pivotal
+            Pivotal,
         ]
 
         # hooks
         hooks = [
-            ('post_setup', extend_tinydb),
+            #('post_setup', extend_tinydb),
         ]
 
 

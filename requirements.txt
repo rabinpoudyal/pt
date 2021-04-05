@@ -4,3 +4,6 @@ pyyaml
 colorlog
 tinydb
 requests
+enquiries
+pyyaml
+pymongo
