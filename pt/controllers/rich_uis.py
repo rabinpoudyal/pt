@@ -16,7 +16,7 @@ def rich_table(title, headers, data):
     table.caption = "Made with 💖 by [b red not dim]Rabin[/]"
     table.title_justify = "center"
     table.border_style = "bright_yellow"
-    table.columns[1].justify = "center"
+    table.columns[1].justify = "left"
     table.columns[2].justify = "center"
     table.columns[3].justify = "center"
     table.row_styles = ["none", "dim"]

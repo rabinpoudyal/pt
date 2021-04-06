@@ -16,7 +16,7 @@ class Pivotal(Controller):
 
     def api_header(self):
         self.app.log.info("Setting the tracker token")
-        api_token = self.app.config.get("pt", "auth_token")
+        api_token = self.app.secrets.get("PIVOTAL_TRACKER_API_TOKEN")
         return {"X-TrackerToken": api_token}
 
     @ex(help="me in tracker")
@@ -88,9 +88,11 @@ class Pivotal(Controller):
         story_type = self.app.pargs.story_type
 
         url = self.app.config.get("pt", "endpoints").get("stories")
-        result = requests.get(url, headers=self.api_header())
-        results = result.json()
-
+        print(url)
+        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
+        results = result.json()['stories']['stories']
+        
         base_headers = [
             {"name": "id", "disp_name": "ID", "width": "10"},
             {"name": "name", "disp_name": "Name", "width": "85"},
@@ -100,7 +102,7 @@ class Pivotal(Controller):
         if story_type in ['f', 'feature', 'features']:
             selected_story_type = 'feature'
             headers = base_headers + [
-                {"name": "estimate", "disp_name": "Est.", "width": "5"},
+                #{"name": "estimate", "disp_name": "Est.", "width": "5"},
                 {"name": "current_state", "disp_name": "State", "width": "10"},
             ]
             stories = [item for item in results if item.get("story_type") == "feature"]

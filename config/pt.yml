@@ -1,9 +1,8 @@
 pt:
   name: Pivotal Tracker App
-  auth_token: 979125c61ce9c93a3f02f0ef509e6415
   endpoints:
     my_details: https://www.pivotaltracker.com/services/v5/me
     notifications: https://www.pivotaltracker.com/services/v5/my/notifications?envelope=true
-    teams: https://www.pivotaltracker.com/services/v5/my/people?project_id=1342442
+    teams: https://www.pivotaltracker.com/services/v5/my/people?project_id={PROJECT_ID}
     mark_read: https://www.pivotaltracker.com/services/v5/my/notifications/mark_read
-    stories: https://www.pivotaltracker.com/services/v5/projects/2491577/stories
+    stories: https://www.pivotaltracker.com/services/v5/projects/{PROJECT_ID}/search?&fields=:default&query=mywork%3A%22RP%22
