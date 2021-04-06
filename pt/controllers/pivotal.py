@@ -88,7 +88,6 @@ class Pivotal(Controller):
         story_type = self.app.pargs.story_type
 
         url = self.app.config.get("pt", "endpoints").get("stories")
-        print(url)
         PROJECT_ID = self.app.secrets.get("PROJECT_ID")
         result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
         results = result.json()['stories']['stories']
@@ -102,7 +101,7 @@ class Pivotal(Controller):
         if story_type in ['f', 'feature', 'features']:
             selected_story_type = 'feature'
             headers = base_headers + [
-                #{"name": "estimate", "disp_name": "Est.", "width": "5"},
+                {"name": "estimate", "disp_name": "Est.", "width": "5"},
                 {"name": "current_state", "disp_name": "State", "width": "10"},
             ]
             stories = [item for item in results if item.get("story_type") == "feature"]
@@ -124,6 +123,14 @@ class Pivotal(Controller):
             print('Only: f/c/b')
             return 1
 
+        stories_order = ['unscheduled', 'unstarted', 'planned', 'started' ,'finished', 'delivered']
+        s = []
+        for item in stories_order:
+            result = filter(lambda x: x['current_state'] == item, stories)
+            s += result
+
+        stories = reversed(s)
+
         for table in [stories]:
             data = []
             for item in table:
@@ -132,13 +139,36 @@ class Pivotal(Controller):
                     if key["name"] == "url":
                         link = f"[link={item[key['name']]}]🔗[/link]"
                         record.append(link)
+                    elif key["name"] == "current_state":
+                        state = item[key['name']]
+                        if state == 'started':
+                            s = '[b orchid not dim]Started[/]'
+                            record[1] = f'🔥 [b orchid not dim]{record[1]}[/]'
+                        elif state == 'finished':
+                            s = '[b yellow not dim]Finished[/]'
+                            record[1] = f'👍 [b yellow not dim]{record[1]}[/]'
+                        elif state == 'delivered':
+                            s = '[b green not dim]Delivered[/]'
+                            record[1] = f'✅ [b green not dim]{record[1]}[/]'
+                        elif state == 'planned':
+                            s = '[b tan not dim]Planned[/]'
+                            record[1] = f'📅 [b tan not dim]{record[1]}[/]'
+                        elif state == 'unscheduled':
+                            s = '[b black not dim]Unscheduled[/]'
+                            record[1] = f'❌ [b black not dim]{record[1]}[/]'
+                        elif state == 'unstarted':
+                            s = '[b dim]Unstarted[/]'
+                            record[1] = f'🚧 [b dim]{record[1]}[/]'
+                        else:
+                            s = '⭕'
+                        record.append(s)
                     else:
-                        record.append(item[key["name"]])
+                        record.append(item.get(key["name"], '-' ) )
                 data.append(record)
             rich_table(
                 selected_story_type.capitalize() + " Tickets",
                 headers,
-                data,
+                reversed(data),
             )
 
     @ex(help="create ticket", arguments=[])
