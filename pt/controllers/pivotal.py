@@ -78,20 +78,7 @@ class Pivotal(Controller):
         )
         print(result.status_code)
 
-    @ex(
-        help="list stories",
-        arguments=[
-            (["story_type"], {"help": "story type", "action": "store"}),
-        ],
-    )
-    def list(self):
-        story_type = self.app.pargs.story_type
-
-        url = self.app.config.get("pt", "endpoints").get("stories")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
-        result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
-        results = result.json()['stories']['stories']
-        
+    def tabulate_response(self, story_type, results, show_details=False):
         base_headers = [
             {"name": "id", "disp_name": "ID", "width": "10"},
             {"name": "name", "disp_name": "Name", "width": "85"},
@@ -121,7 +108,8 @@ class Pivotal(Controller):
             stories = [item for item in results if item.get("story_type") == "bug"]
         else:
             print('Only: f/c/b')
-            return 1
+            selected_story_type = ''
+            stories, headers = [], []
 
         stories_order = ['unscheduled', 'unstarted', 'planned', 'started' ,'finished', 'delivered']
         s = []
@@ -162,6 +150,15 @@ class Pivotal(Controller):
                         else:
                             s = '⭕'
                         record.append(s)
+                    elif key["name"] == "name":
+                        if show_details:
+                            desc = item.get('description', '')
+                            name = item.get('name', '')
+                            url = item.get('url', '')
+                            task_details = f'[b orchid not dim]Task:[/] \n\n{name} \n\n [b orchid not dim]Description:[/] \n\n{desc} \n\n [b orchid not dim]Link:[/] \n\n{url}'
+                            record.append(task_details)
+                        else:
+                            record.append(item.get('name', ''))
                     else:
                         record.append(item.get(key["name"], '-' ) )
                 data.append(record)
@@ -170,6 +167,22 @@ class Pivotal(Controller):
                 headers,
                 reversed(data),
             )
+        
+    @ex(
+        help="list stories",
+        arguments=[
+            (["story_type"], {"help": "story type", "action": "store"}),
+        ],
+    )
+    def list(self):
+        story_type = self.app.pargs.story_type
+
+        url = self.app.config.get("pt", "endpoints").get("stories_search")
+        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
+        results = result.json()['stories']['stories']
+        self.tabulate_response(story_type, results)
+
 
     @ex(help="create ticket", arguments=[])
     def create(self):
@@ -195,7 +208,8 @@ class Pivotal(Controller):
 
     def fetch_story(self, ticket):
         url = self.app.config.get("pt", "endpoints").get("stories")
-        url += f"/{ticket}"
+        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = f"{url}/{ticket}".format(PROJECT_ID=PROJECT_ID)
         result = requests.get(url, headers=self.api_header())
         return result.json()
 
@@ -208,6 +222,8 @@ class Pivotal(Controller):
     def show(self):
         ticket = self.app.pargs.ticket_id
         result = self.fetch_story(ticket)
+        story_type = result.get('story_type', '')
+        self.tabulate_response(story_type, [result], show_details=True)
         preety_print(result)
 
     @ex(
