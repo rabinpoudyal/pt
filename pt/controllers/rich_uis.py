@@ -30,7 +30,7 @@ def rich_show_table(title, headers, stories, comments):
     table.add_column('Value', width=100)
     for story in stories:
         for row in headers:
-            table.add_row(*[str(row['disp_name']) ,str(story[row['name']])])
+            table.add_row(*[str(row['disp_name']) , str(story.get(row['name'], '')) ])
         table.add_row(*['', '\n[blue underline]Labels:[/] \n'])
         labels = story.get('labels', [])
         labels = ' '.join([ f"[b red not dim]{item['name']}[/]" for item in labels ])
