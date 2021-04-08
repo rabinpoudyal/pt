@@ -233,6 +233,26 @@ class Pivotal(Controller):
         rich_show_table('Showing Story Details', headers, stories, comments)
 
     @ex(
+        help="comment on ticket",
+        arguments=[
+            (["ticket_id"], {"help": "ticket id", "action": "store"}),
+        ],
+    )
+    def comment(self):
+        ticket = self.app.pargs.ticket_id
+        url = self.app.config.get("pt", "endpoints").get("stories")
+        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = f"{url}/{ticket}".format(PROJECT_ID=PROJECT_ID)
+        headers = self.api_header()
+        url = f"{url}/comments"
+        comment = Prompt.ask("Type Comment: ")
+        response = requests.post(url, headers=headers, data={'text': comment})
+        if response.ok:
+            print('Done')
+        else:
+            print('Fuck!')
+
+    @ex(
         help="update ticket",
         arguments=[
             (["ticket_id"], {"help": "ticket id", "action": "store"}),
