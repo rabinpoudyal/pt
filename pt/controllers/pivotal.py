@@ -4,7 +4,7 @@ from time import strftime
 from cement import Controller, ex
 
 from .utils import preety_print
-from .rich_uis import rich_table
+from .rich_uis import rich_table, rich_show_table
 from rich.prompt import Prompt, Confirm
 
 
@@ -78,7 +78,7 @@ class Pivotal(Controller):
         )
         print(result.status_code)
 
-    def tabulate_response(self, story_type, results, show_details=False):
+    def generate_headers_and_data(self, story_type, results):
         base_headers = [
             {"name": "id", "disp_name": "ID", "width": "10"},
             {"name": "name", "disp_name": "Name", "width": "85"},
@@ -110,7 +110,6 @@ class Pivotal(Controller):
             print('Only: f/c/b')
             selected_story_type = ''
             stories, headers = [], []
-
         stories_order = ['unscheduled', 'unstarted', 'planned', 'started' ,'finished', 'delivered']
         s = []
         for item in stories_order:
@@ -118,7 +117,12 @@ class Pivotal(Controller):
             s += result
 
         stories = reversed(s)
+        return stories, headers, selected_story_type
 
+
+    def generate_index_table(self, story_type, results):
+        ''' Index table '''
+        stories, headers, selected_story_type = self.generate_headers_and_data(story_type, results)
         for table in [stories]:
             data = []
             for item in table:
@@ -150,23 +154,18 @@ class Pivotal(Controller):
                         else:
                             s = '⭕'
                         record.append(s)
-                    elif key["name"] == "name":
-                        if show_details:
-                            desc = item.get('description', '')
-                            name = item.get('name', '')
-                            url = item.get('url', '')
-                            task_details = f'[b orchid not dim]Task:[/] \n\n{name} \n\n [b orchid not dim]Description:[/] \n\n{desc} \n\n [b orchid not dim]Link:[/] \n\n{url}'
-                            record.append(task_details)
-                        else:
-                            record.append(item.get('name', ''))
                     else:
                         record.append(item.get(key["name"], '-' ) )
                 data.append(record)
-            rich_table(
-                selected_story_type.capitalize() + " Tickets",
-                headers,
-                reversed(data),
-            )
+            return selected_story_type, headers, data
+
+    def generate_table(self, story_type, results):
+        selected_story_type, headers, data = self.generate_index_table(story_type, results)
+        rich_table(
+            selected_story_type.capitalize() + " Tickets",
+            headers,
+            reversed(data),
+        )
         
     @ex(
         help="list stories",
@@ -181,7 +180,7 @@ class Pivotal(Controller):
         PROJECT_ID = self.app.secrets.get("PROJECT_ID")
         result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
         results = result.json()['stories']['stories']
-        self.tabulate_response(story_type, results)
+        self.generate_table(story_type, results)
 
 
     @ex(help="create ticket", arguments=[])
@@ -210,8 +209,12 @@ class Pivotal(Controller):
         url = self.app.config.get("pt", "endpoints").get("stories")
         PROJECT_ID = self.app.secrets.get("PROJECT_ID")
         url = f"{url}/{ticket}".format(PROJECT_ID=PROJECT_ID)
-        result = requests.get(url, headers=self.api_header())
-        return result.json()
+        headers = self.api_header()
+        result = requests.get(url, headers=headers)
+
+        url = f"{url}/comments"
+        comments = requests.get(url, headers=headers)
+        return result.json(), comments.json()
 
     @ex(
         help="view ticket",
@@ -221,10 +224,13 @@ class Pivotal(Controller):
     )
     def show(self):
         ticket = self.app.pargs.ticket_id
-        result = self.fetch_story(ticket)
-        story_type = result.get('story_type', '')
-        self.tabulate_response(story_type, [result], show_details=True)
-        preety_print(result)
+        story_details, comments = self.fetch_story(ticket)
+        story_type = story_details.get('story_type', '')
+        stories, headers, selected_story_type = self.generate_headers_and_data(story_type, [story_details])
+        headers += [
+            {"name": "description", "disp_name": "Description", "width": "10"}
+        ]
+        rich_show_table('Showing Story Details', headers, stories, comments)
 
     @ex(
         help="update ticket",
