@@ -46,7 +46,7 @@ def rich_show_table(title, headers, stories, comments, blockers):
         blkr = blocker.get("description", "")
         person_id = blocker.get("person_id", "")
         table.add_row(
-            *["", f"[blue underline italics]{person_id} Says[/]:\n{blkr} \n"]
+            *[f"[blue underline italics]{person_id} Says[/]:\n{blkr} \n"]
         )
 
     table.add_row(*["\n[green underline]Comments:[/] \n"])
@@ -54,7 +54,7 @@ def rich_show_table(title, headers, stories, comments, blockers):
         comment_text = comment.get("text", "")
         person_id = comment.get("person_id", "")
         table.add_row(
-            *["", f"👨 [blue underline italic]{person_id} Says[/]:\n{comment_text} \n"]
+            *[f"👨 [blue underline italic]{person_id} Says[/]:\n{comment_text} \n"]
         )
 
     table.title = f"[b magenta not dim]{title}[/]"
