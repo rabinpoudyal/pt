@@ -182,6 +182,53 @@ class Pivotal(Controller):
         results = result.json()['stories']['stories']
         self.generate_table(story_type, results)
 
+    @ex(
+        help="list labels",
+    )
+    def labels(self):
+        url = self.app.config.get("pt", "endpoints").get("labels")
+        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
+        results = result.json()
+        preety_print(results)
+
+    @ex(
+        help="list releases",
+    )
+    def releases(self):
+        url = self.app.config.get("pt", "endpoints").get("releases")
+        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
+        results = result.json()
+        preety_print(results)
+
+    @ex(
+        help="list epics",
+    )
+    def epics(self):
+        url = self.app.config.get("pt", "endpoints").get("epics")
+        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        result = requests.get(f'{url}'.format(PROJECT_ID=PROJECT_ID), headers=self.api_header())
+        results = result.json()
+        headers = [
+            {"name": "name", "disp_name": "Name", "width": "50"},
+            {"name": "label", "disp_name": "Label", "width": "30"},
+        ]
+        data = []
+        for item in results:
+            record = []
+            for h in headers:
+                if h['name'] == "label":
+                    label = item.get(h['name'], {})['name']
+                    record.append(label)
+                else:
+                    record.append(item.get(h['name'], ''))
+            data.append(record)
+        rich_table(
+            "Epics",
+            headers,
+            data,
+        )
 
     @ex(help="create ticket", arguments=[])
     def create(self):
@@ -208,13 +255,16 @@ class Pivotal(Controller):
     def fetch_story(self, ticket):
         url = self.app.config.get("pt", "endpoints").get("stories")
         PROJECT_ID = self.app.secrets.get("PROJECT_ID")
-        url = f"{url}/{ticket}".format(PROJECT_ID=PROJECT_ID)
+        story_url = f"{url}/{ticket}".format(PROJECT_ID=PROJECT_ID)
         headers = self.api_header()
-        result = requests.get(url, headers=headers)
+        result = requests.get(story_url, headers=headers)
 
-        url = f"{url}/comments"
-        comments = requests.get(url, headers=headers)
-        return result.json(), comments.json()
+        comments_url = f"{story_url}/comments"
+        comments = requests.get(comments_url, headers=headers)
+
+        blockers_url = f"{story_url}/blockers"
+        blockers = requests.get(blockers_url, headers=headers)
+        return result.json(), comments.json(), blockers.json()
 
     @ex(
         help="view ticket",
@@ -224,13 +274,13 @@ class Pivotal(Controller):
     )
     def show(self):
         ticket = self.app.pargs.ticket_id
-        story_details, comments = self.fetch_story(ticket)
+        story_details, comments, blockers = self.fetch_story(ticket)
         story_type = story_details.get('story_type', '')
         stories, headers, selected_story_type = self.generate_headers_and_data(story_type, [story_details])
         headers += [
             {"name": "description", "disp_name": "Description", "width": "10"}
         ]
-        rich_show_table('Showing Story Details', headers, stories, comments)
+        rich_show_table('Showing Story Details', headers, stories, comments, blockers)
 
     @ex(
         help="comment on ticket",
