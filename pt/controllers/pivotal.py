@@ -82,14 +82,13 @@ class Pivotal(Controller):
         base_headers = [
             {"name": "id", "disp_name": "ID", "width": "10"},
             {"name": "name", "disp_name": "Name", "width": "85"},
-            {"name": "url", "disp_name": "Link", "width": "5"},
         ]
 
         if story_type in ['f', 'feature', 'features']:
             selected_story_type = 'feature'
             headers = base_headers + [
-                {"name": "estimate", "disp_name": "Est.", "width": "5"},
                 {"name": "current_state", "disp_name": "State", "width": "10"},
+                {"name": "estimate", "disp_name": "Estimate", "width": "5"},
             ]
             stories = [item for item in results if item.get("story_type") == "feature"]
         elif story_type in ['c', 'chore', 'chores']:
@@ -102,7 +101,7 @@ class Pivotal(Controller):
         elif story_type in ['b', 'bug', 'bugs']:
             selected_story_type = 'bug'
             headers = base_headers + [
-                {"name": "requested_by_id", "disp_name": "Requester", "width": "5"},
+                #{"name": "requested_by_id", "disp_name": "Requester", "width": "5"},
                 {"name": "current_state", "disp_name": "State", "width": "10"},
             ]
             stories = [item for item in results if item.get("story_type") == "bug"]
@@ -110,6 +109,7 @@ class Pivotal(Controller):
             print('Only: f/c/b')
             selected_story_type = ''
             stories, headers = [], []
+        #headers += [{"name": "url", "disp_name": "Link", "width": "5"}]
         stories_order = ['unscheduled', 'unstarted', 'planned', 'started' ,'finished', 'delivered']
         s = []
         for item in stories_order:
@@ -128,34 +128,34 @@ class Pivotal(Controller):
             for item in table:
                 record = []
                 for key in headers:
-                    if key["name"] == "url":
-                        link = f"[link={item[key['name']]}]🔗[/link]"
-                        record.append(link)
+                    if key["name"] == "id":
+                        id = f"[b blue][link={item['url']}] {item[key['name']]}[/link][/]\n"
+                        record.append(id)
                     elif key["name"] == "current_state":
                         state = item[key['name']]
                         if state == 'started':
-                            s = '[b orchid not dim]Started[/]'
-                            record[1] = f'🔥 [b orchid not dim]{record[1]}[/]'
+                            s = '[b orchid not dim] Started[/]'
+                            record[1] = f'[b orchid not dim]{record[1]}[/]'
                         elif state == 'finished':
-                            s = '[b yellow not dim]Finished[/]'
-                            record[1] = f'👍 [b yellow not dim]{record[1]}[/]'
+                            s = '[b yellow not dim] Finished[/]'
+                            record[1] = f'[b yellow not dim]{record[1]}[/]'
                         elif state == 'delivered':
-                            s = '[b green not dim]Delivered[/]'
-                            record[1] = f'✅ [b green not dim]{record[1]}[/]'
+                            s = '[b green not dim]ﮒ Delivered[/]'
+                            record[1] = f'[b green not dim]{record[1]}[/]'
                         elif state == 'planned':
-                            s = '[b tan not dim]Planned[/]'
-                            record[1] = f'📅 [b tan not dim]{record[1]}[/]'
+                            s = '[b tan not dim] Planned[/]'
+                            record[1] = f'[b tan not dim]{record[1]}[/]'
                         elif state == 'unscheduled':
-                            s = '[b black not dim]Unscheduled[/]'
-                            record[1] = f'❌ [b black not dim]{record[1]}[/]'
+                            s = '[b black not dim] Unscheduled[/]'
+                            record[1] = f'[b black not dim]{record[1]}[/]'
                         elif state == 'unstarted':
-                            s = '[b dim]Unstarted[/]'
-                            record[1] = f'🚧 [b dim]{record[1]}[/]'
+                            s = '[b dim]ﲅ Unstarted[/]'
+                            record[1] = f'[b dim]{record[1]}[/]'
                         else:
                             s = '⭕'
-                        record.append(s)
+                        record.append('\n[b blue]' + key["disp_name"] + ':[/] \n  ' + s)
                     else:
-                        record.append(item.get(key["name"], '-' ) )
+                        record.append('\n[b blue]' + key["disp_name"] + ': [/]\n  ' + str(item.get(key["name"], 'ﲅ' ))  )
                 data.append(record)
             return selected_story_type, headers, data
 
@@ -276,7 +276,7 @@ class Pivotal(Controller):
         ticket = self.app.pargs.ticket_id
         story_details, comments, blockers = self.fetch_story(ticket)
         story_type = story_details.get('story_type', '')
-        stories, headers, selected_story_type = self.generate_headers_and_data(story_type, [story_details])
+        selected_story_type, headers, stories = self.generate_index_table(story_type, [story_details])
         headers += [
             {"name": "description", "disp_name": "Description", "width": "10"}
         ]
