@@ -1,5 +1,6 @@
 pt:
   name: Pivotal Tracker App
+  my_id: 3387709
   endpoints:
     my_details: https://www.pivotaltracker.com/services/v5/me
     notifications: https://www.pivotaltracker.com/services/v5/my/notifications?envelope=true
