@@ -215,7 +215,7 @@ class Pivotal(Controller):
     )
     def releases(self):
         """
-        Lists the releases in JSON format
+        Lists the releases in nice format
         """
         url = self.app.config.get("pt", "endpoints").get("releases")
         PROJECT_ID = self.app.secrets.get("PROJECT_ID")
@@ -223,7 +223,17 @@ class Pivotal(Controller):
             f"{url}".format(PROJECT_ID=PROJECT_ID), headers=self.api_header()
         )
         results = result.json()
-        preety_print(results)
+        data = []
+        for item in results:
+            data.append(
+                [
+                    str(item["id"]),
+                    "[b blue]Release Name:[/]\n  " + item["name"],
+                    "[b blue]Description:[/]\n  " + item["description"],
+                    "[b blue]Deadline:[/]\n  " + item["deadline"],
+                ]
+            )
+        rich_table("", [], data)
 
     @ex(
         help="list epics",
@@ -279,7 +289,6 @@ class Pivotal(Controller):
             "tasks": tasks_list,
             "labels": labels_list,
         }
-        print(data)
         if story_type == "bug" or story_type == "chore":
             data.pop("estimate")
         url = self.app.config.get("pt", "endpoints").get("stories")
@@ -364,7 +373,7 @@ class Pivotal(Controller):
         Updates the ticket
         """
         ticket = self.app.pargs.ticket_id
-        result = self.fetch_story(ticket)
+        result, comments, blockers = self.fetch_story(ticket)
 
         text = Prompt.ask("Task title: ", default=result.get("name"))
         description = Prompt.ask(
@@ -380,17 +389,22 @@ class Pivotal(Controller):
             choices=options,
             default=result.get("estimate"),
         )
-
         data = {
             "name": text,
             "description": description,
             "current_state": current_state,
             "estimate": estimate,
         }
+        if story_type == "bug" or story_type == "chore":
+            data.pop("estimate")
         if Confirm.ask("You sure you want to update this task?"):
             url = self.app.config.get("pt", "endpoints").get("stories")
             url += f"/{ticket}"
+            PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+            url = f"{url}".format(PROJECT_ID=PROJECT_ID)
+            print(url)
             result = requests.put(url, data=data, headers=self.api_header())
             preety_print(result.json())
+            print("Done")
         else:
             print("ok")
