@@ -1,9 +1,8 @@
 cement==3.0.4
 jinja2
-pyyaml
 colorlog
-tinydb
 requests
 enquiries
 pyyaml
-pymongo
+python-dotenv
+rich

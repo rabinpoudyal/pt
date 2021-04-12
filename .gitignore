@@ -106,3 +106,6 @@ venv.bak/
 
 # python-dotenv
 config/.env
+
+# vscode settings
+.vscode 
