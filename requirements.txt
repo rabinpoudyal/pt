@@ -6,3 +6,4 @@ enquiries
 pyyaml
 python-dotenv
 rich
+tabulate

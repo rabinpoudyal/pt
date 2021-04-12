@@ -1,5 +1,4 @@
 import os
-from tinydb import TinyDB
 from dotenv import dotenv_values
 from cement import App, TestApp, init_defaults
 from cement.core.exc import CaughtSignal
