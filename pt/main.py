@@ -1,5 +1,5 @@
 import os
-from dotenv import dotenv_values
+# from dotenv import dotenv_values
 from cement import App, TestApp, init_defaults
 from cement.core.exc import CaughtSignal
 from cement.utils import fs
@@ -12,10 +12,10 @@ from .controllers.pivotal import Pivotal
 CONFIG = fs.join(os.path.dirname(__file__), "..", "config", "pt.yml")
 
 
-def load_variables(app):
-    app.log.info("Loading variables")
-    secrets = dotenv_values(fs.join(os.path.dirname(__file__), "..", "config", ".env"))
-    app.extend("secrets", secrets)
+# def load_variables(app):
+#     app.log.info("Loading variables")
+#     secrets = dotenv_values(fs.join(os.path.dirname(__file__), "..", "config", ".env"))
+#     app.extend("secrets", secrets)
 
 class PivotalTracker(App):
     """Pivotal Tracker primary application."""
@@ -50,9 +50,9 @@ class PivotalTracker(App):
         ]
 
         # hooks
-        hooks = [
-            ("post_setup", load_variables),
-        ]
+        # hooks = [
+        #     ("post_setup", load_variables),
+        # ]
 
 
 class PivotalTrackerTest(TestApp, PivotalTracker):

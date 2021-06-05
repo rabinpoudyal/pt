@@ -1,13 +1,4 @@
 pt:
-  name: Pivotal Tracker App
-  my_id: 3387709
-  endpoints:
-    my_details: https://www.pivotaltracker.com/services/v5/me
-    notifications: https://www.pivotaltracker.com/services/v5/my/notifications?envelope=true
-    teams: https://www.pivotaltracker.com/services/v5/my/people?project_id={PROJECT_ID}
-    mark_read: https://www.pivotaltracker.com/services/v5/my/notifications/mark_read
-    stories: https://www.pivotaltracker.com/services/v5/projects/{PROJECT_ID}/stories
-    labels: https://www.pivotaltracker.com/services/v5/projects/{PROJECT_ID}/labels
-    releases: https://www.pivotaltracker.com/services/v5/projects/{PROJECT_ID}/releases
-    epics: https://www.pivotaltracker.com/services/v5/projects/{PROJECT_ID}/epics
-    stories_search: https://www.pivotaltracker.com/services/v5/projects/{PROJECT_ID}/search?&fields=:default&query=mywork%3A%22RP%22
+  PIVOTAL_TRACKER_API_TOKEN: 6f0096d0d894ac14e63d45690817ad30
+  PROJECT_ID: 1342442
+  MY_ID: 3387709

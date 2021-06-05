@@ -7,7 +7,7 @@ from .utils import preety_print
 from .rich_uis import rich_table, rich_show_table, notifications_table
 from rich.prompt import Prompt, Confirm
 
-
+from .constants import TRACKER_CONSTANTS
 class Pivotal(Controller):
     class Meta:
         label = "pivotal"
@@ -18,7 +18,7 @@ class Pivotal(Controller):
         Returns the dict with token.
         """
         self.app.log.info("Setting the tracker token")
-        api_token = self.app.secrets.get("PIVOTAL_TRACKER_API_TOKEN")
+        api_token = self.app.config.get("pt", "PIVOTAL_TRACKER_API_TOKEN")
         return {"X-TrackerToken": api_token}
 
     @ex(help="me in tracker")
@@ -26,7 +26,7 @@ class Pivotal(Controller):
         """
         Gets details about your account from tracker and prints it in nice format.
         """
-        url = self.app.config.get("pt", "endpoints").get("my_details")
+        url = TRACKER_CONSTANTS["endpoints"].get("my_details")
         result = requests.get(url, headers=self.api_header())
         self.app.log.info("Your details as JSON:")
         preety_print(result.json())
@@ -36,7 +36,7 @@ class Pivotal(Controller):
         """
         Shows notifications
         """
-        url = self.app.config.get("pt", "endpoints").get("notifications")
+        url = TRACKER_CONSTANTS["endpoints"].get("notifications")
         result = requests.get(url, headers=self.api_header())
         results = result.json()
         headers = ["id", "performer", "message", "notification_type", "action", "story"]
@@ -178,8 +178,8 @@ class Pivotal(Controller):
         Lists items from tracker and builds panels for UI.
         """
         story_type = self.app.pargs.story_type
-        url = self.app.config.get("pt", "endpoints").get("stories_search")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = TRACKER_CONSTANTS["endpoints"].get("stories_search")
+        PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         result = requests.get(
             f"{url}".format(PROJECT_ID=PROJECT_ID), headers=self.api_header()
         )
@@ -193,8 +193,8 @@ class Pivotal(Controller):
         """
         Displays labels present in the project
         """
-        url = self.app.config.get("pt", "endpoints").get("labels")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = TRACKER_CONSTANTS["endpoints"].get("labels")
+        PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         result = requests.get(
             f"{url}".format(PROJECT_ID=PROJECT_ID), headers=self.api_header()
         )
@@ -217,8 +217,8 @@ class Pivotal(Controller):
         """
         Lists the releases in nice format
         """
-        url = self.app.config.get("pt", "endpoints").get("releases")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = TRACKER_CONSTANTS["endpoints"].get("releases")
+        PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         result = requests.get(
             f"{url}".format(PROJECT_ID=PROJECT_ID), headers=self.api_header()
         )
@@ -242,8 +242,8 @@ class Pivotal(Controller):
         """
         Lists the epics of the project
         """
-        url = self.app.config.get("pt", "endpoints").get("epics")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = TRACKER_CONSTANTS["endpoints"].get("epics")
+        PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         result = requests.get(
             f"{url}".format(PROJECT_ID=PROJECT_ID), headers=self.api_header()
         )
@@ -278,7 +278,7 @@ class Pivotal(Controller):
         tasks = Prompt.ask("Add tasks separated by comma: ").split(",")
         labels_list = [{"name": item} for item in labels]
         tasks_list = [{"description": item} for item in tasks]
-        my_id = self.app.config.get("pt", "my_id")
+        my_id = self.app.config.get("pt", "pt", "my_id")
         data = {
             "name": text,
             "story_type": story_type,
@@ -291,8 +291,8 @@ class Pivotal(Controller):
         }
         if story_type == "bug" or story_type == "chore":
             data.pop("estimate")
-        url = self.app.config.get("pt", "endpoints").get("stories")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = TRACKER_CONSTANTS["endpoints"].get("stories")
+        PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         url = f"{url}".format(PROJECT_ID=PROJECT_ID)
         result = requests.post(url, json=data, headers=self.api_header()).json()
         print(result)
@@ -307,8 +307,8 @@ class Pivotal(Controller):
         """
         Fetch story data from server - story, comments, details
         """
-        url = self.app.config.get("pt", "endpoints").get("stories")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = TRACKER_CONSTANTS["endpoints"].get("stories")
+        PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         story_url = f"{url}/{ticket}".format(PROJECT_ID=PROJECT_ID)
         headers = self.api_header()
         result = requests.get(story_url, headers=headers)
@@ -350,8 +350,8 @@ class Pivotal(Controller):
         Comments in a ticket
         """
         ticket = self.app.pargs.ticket_id
-        url = self.app.config.get("pt", "endpoints").get("stories")
-        PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+        url = TRACKER_CONSTANTS["endpoints"].get("stories")
+        PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         url = f"{url}/{ticket}".format(PROJECT_ID=PROJECT_ID)
         headers = self.api_header()
         url = f"{url}/comments"
@@ -398,9 +398,9 @@ class Pivotal(Controller):
         if story_type == "bug" or story_type == "chore":
             data.pop("estimate")
         if Confirm.ask("You sure you want to update this task?"):
-            url = self.app.config.get("pt", "endpoints").get("stories")
+            url = TRACKER_CONSTANTS["endpoints"].get("stories")
             url += f"/{ticket}"
-            PROJECT_ID = self.app.secrets.get("PROJECT_ID")
+            PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
             url = f"{url}".format(PROJECT_ID=PROJECT_ID)
             print(url)
             result = requests.put(url, data=data, headers=self.api_header())

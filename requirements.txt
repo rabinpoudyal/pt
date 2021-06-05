@@ -4,6 +4,5 @@ colorlog
 requests
 enquiries
 pyyaml
-python-dotenv
 rich
 tabulate
