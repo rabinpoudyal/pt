@@ -8,8 +8,11 @@ f = open('README.md', 'r')
 LONG_DESCRIPTION = f.read()
 f.close()
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setup(
-    name='pt',
+    name='pt-cli',
     version=VERSION,
     description='It uses an pivotal tracker api and does lot of cool stuffs like creating tickets.',
     long_description=LONG_DESCRIPTION,
@@ -21,6 +24,7 @@ setup(
     packages=find_packages(exclude=['ez_setup', 'tests*']),
     package_data={'pt': ['templates/*']},
     include_package_data=True,
+    install_requires=[],
     entry_points="""
         [console_scripts]
         pt = pt.main:main
