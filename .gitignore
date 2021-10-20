@@ -109,3 +109,6 @@ config/.env
 
 # vscode settings
 .vscode 
+
+# logs
+log

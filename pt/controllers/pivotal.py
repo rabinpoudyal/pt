@@ -276,9 +276,9 @@ class Pivotal(Controller):
         )
         labels = Prompt.ask("Add labels separated by comma: ").split(",")
         tasks = Prompt.ask("Add tasks separated by comma: ").split(",")
-        labels_list = [{"name": item} for item in labels]
-        tasks_list = [{"description": item} for item in tasks]
-        my_id = self.app.config.get("pt", "pt", "my_id")
+        labels_list = [{"name": item} for item in labels if item != '']
+        tasks_list = [{"description": item} for item in tasks if item != '']
+        my_id = self.app.config.get("pt", "PERSON_ID")
         data = {
             "name": text,
             "story_type": story_type,
@@ -294,14 +294,16 @@ class Pivotal(Controller):
         url = TRACKER_CONSTANTS["endpoints"].get("stories")
         PROJECT_ID = self.app.config.get("pt", "PROJECT_ID")
         url = f"{url}".format(PROJECT_ID=PROJECT_ID)
+        data = { k: v for k,v in data.items() if v is not None or v != ''  }
         result = requests.post(url, json=data, headers=self.api_header()).json()
         print(result)
-        story_type = result.get("story_type", "")
-        selected_story_type, headers, stories = self.transform_values(
-            story_type, [result]
-        )
-        headers += [{"name": "description", "disp_name": "Description", "width": "10"}]
-        rich_show_table("Created", stories, [], [])
+        if result.get('kind', '') != 'error':
+            story_type = result.get("story_type", "")
+            selected_story_type, headers, stories = self.transform_values(
+                story_type, [result]
+            )
+            headers += [{"name": "description", "disp_name": "Description", "width": "10"}]
+            rich_show_table("Created", stories, [], [])
 
     def fetch_story(self, ticket):
         """
