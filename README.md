@@ -44,8 +44,6 @@ pt:
 ## Installation
 
 ```
-$ pip install -r requirements.txt
-
 $ pip install setup.py
 ```
 
@@ -75,36 +73,3 @@ $ pt --help
 $ make test
 ```
 
-
-### Releasing to PyPi
-
-Before releasing to PyPi, you must configure your login credentials:
-
-**~/.pypirc**:
-
-```
-[pypi]
-username = YOUR_USERNAME
-password = YOUR_PASSWORD
-```
-
-Then use the included helper function via the `Makefile`:
-
-```
-$ make dist
-
-$ make dist-upload
-```
-
-## Deployments
-
-### Docker
-
-Included is a basic `Dockerfile` for building and distributing `Pivotal Tracker`,
-and can be built with the included `make` helper:
-
-```
-$ make docker
-
-$ docker run -it pt --help
-```
