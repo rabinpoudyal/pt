@@ -1,5 +1,6 @@
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages 
+
 from pt.core.version import get_version
 
 VERSION = get_version()
@@ -7,9 +8,6 @@ VERSION = get_version()
 f = open('README.md', 'r')
 LONG_DESCRIPTION = f.read()
 f.close()
-
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
 
 setup(
     name='pt-cli',
@@ -24,7 +22,16 @@ setup(
     packages=find_packages(exclude=['ez_setup', 'tests*']),
     package_data={'pt': ['templates/*']},
     include_package_data=True,
-    install_requires=[],
+    install_requires=[
+        "cement==3.0.4",
+        "jinja2",
+        "colorlog",
+        "requests",
+        "enquiries",
+        "pyyaml",
+        "rich",
+        "tabulate",
+    ],
     entry_points="""
         [console_scripts]
         pt = pt.main:main
